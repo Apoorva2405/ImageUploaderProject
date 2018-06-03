@@ -1,9 +1,6 @@
 package com.upgrad.ImageHoster.common;
 
-import com.upgrad.ImageHoster.model.Image;
-import com.upgrad.ImageHoster.model.ProfilePhoto;
-import com.upgrad.ImageHoster.model.Tag;
-import com.upgrad.ImageHoster.model.User;
+import com.upgrad.ImageHoster.model.*;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -24,6 +21,7 @@ public class SessionManager {
         configuration.addAnnotatedClass(Tag.class);
         configuration.addAnnotatedClass(User.class);
         configuration.addAnnotatedClass(ProfilePhoto.class);
+        configuration.addAnnotatedClass(Comment.class);
 
         configuration.configure("hibernate.cfg.xml");
 

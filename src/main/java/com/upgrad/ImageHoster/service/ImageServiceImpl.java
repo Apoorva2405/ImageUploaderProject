@@ -10,6 +10,16 @@ import java.util.List;
 public class ImageServiceImpl implements ImageService {
     private ImageManager imageManager;
 
+    @Override
+    public Image getById(int id) {
+        return imageManager.getImageById(id);
+    }
+
+    @Override
+    public Image getByIdWithJoin(int id) {
+        return imageManager.getImageByIdWithJoins(id);
+    }
+
     public ImageServiceImpl() {
         imageManager = new ImageManager();
     }
@@ -29,8 +39,9 @@ public class ImageServiceImpl implements ImageService {
     public Image getByTitleWithJoin(String title) { return imageManager.getImageByTitleWithJoins(title); }
 
     @Override
-    public void deleteByTitle(Image image) {
-        imageManager.deleteImage(image.getTitle());
+    public void deleteById(Image image) {
+        System.out.print("delete image impl: ");
+        imageManager.deleteImage(image.getId());
     }
 
     @Override

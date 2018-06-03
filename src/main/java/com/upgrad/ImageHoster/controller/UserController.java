@@ -6,6 +6,7 @@ import com.upgrad.ImageHoster.model.ProfilePhoto;
 import com.upgrad.ImageHoster.model.User;
 import com.upgrad.ImageHoster.service.ProfilePhotoService;
 import com.upgrad.ImageHoster.service.UserService;
+import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.io.*;
+import java.sql.ResultSet;
 import java.util.Base64;
+import java.util.HashMap;
 
 
 @Controller
@@ -27,6 +30,8 @@ public class UserController {
 
     @Autowired
     private ProfilePhotoService profilePhotoService;
+
+    private static int MIN_LENGTH = 6;
 
     /**
      * This controller method renders the user signup view
@@ -58,25 +63,47 @@ public class UserController {
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public String signUpUser(@RequestParam("username") String username,
                              @RequestParam("password") String password,
-                               HttpSession session) {
-        // We'll first assign a default photo to the user
-        ProfilePhoto photo = new ProfilePhoto();
-        profilePhotoService.save(photo);
+                             Model model,
+                             HttpSession session) {
+        //Trying to check if the user name already exists;
+        HashMap<String,String> errors = new HashMap<String, String>();
+        String errorMsg = null;
+        if (username.length() < MIN_LENGTH || password.length() < MIN_LENGTH) {
+            errorMsg = "need to be 6 characters or longer";
+            if (username.length() < MIN_LENGTH) {
+                errors.put("username", errorMsg);
+            }
+            if (password.length() < MIN_LENGTH) {
+                errors.put("password", errorMsg);
+            }
+            model.addAttribute("errors", errors);
+        }
+        else if (userService.getByName(username)!= null) {
+            errorMsg = "Username already exists";
+            errors.put("username", errorMsg);
+            model.addAttribute("errors", errors);
+        }
+        else { /*Creating new user if the user name does NOT exist*/
+            // We'll first assign a default photo to the user
+            System.out.print("else condition "+username.length()+" username "+username);
+            ProfilePhoto photo = new ProfilePhoto();
+            profilePhotoService.save(photo);
 
-        // it is good security practice to store the hash version of the password
-        // in the database. Therefore, if your a hacker gains access to your
-        // database, the hacker cannot see the password for your users
-        String passwordHash = hashPassword(password);
-        User user = new User(username, passwordHash, photo);
-        userService.register(user);
+            // it is good security practice to store the hash version of the password
+            // in the database. Therefore, if your a hacker gains access to your
+            // database, the hacker cannot see the password for your users
+            String passwordHash = hashPassword(password);
+            User user = new User(username, passwordHash, photo);
+            userService.register(user);
 
-        // We want to create an "currUser" attribute in the HTTP session, and store the user
-        // as the attribute's value to signify that the user has logged in
-        session.setAttribute("currUser", user);
+            // We want to create an "currUser" attribute in the HTTP session, and store the user
+            // as the attribute's value to signify that the user has logged in
+            session.setAttribute("currUser", user);
 
-        return "redirect:/";
+            return "redirect:/";
+        }
+        return "users/signup";
     }
-
     /**
      * This method render the user signin form
      *
